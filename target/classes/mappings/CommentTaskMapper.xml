@@ -1,0 +1,80 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE mapper PUBLIC '-//mybatis.org//DTD Mapper 3.0//EN'
+        'http://mybatis.org/dtd/mybatis-3-mapper.dtd'>
+
+<mapper namespace="com.taskmanager.repository.mybatis.mapper.CommentTaskMapper">
+
+    <insert id="save">
+        INSERT INTO public.comment_task (
+            id,
+            task_id,
+            create_user_id,
+            content
+        ) VALUES (
+            #{entity.id}::UUID,
+            #{entity.taskId}::UUID,
+            #{entity.createUserId}::UUID,
+            #{entity.content}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE public.comment_task
+        SET
+            content = #{entity.content},
+            update_user_id = #{entity.updateUserId},
+            update_at = now()
+        WHERE id = #{entity.id}::UUID
+    </update>
+
+    <select id="getById" resultMap="CommentTaskMap">
+        SELECT
+            id,
+            create_user_id,
+            update_user_id,
+            task_id,
+            content,
+            create_at
+        FROM public.comment_task
+        WHERE id = #{id}::UUID
+            AND deleted IS FALSE
+    </select>
+
+    <select id="getByTaskId" resultMap="CommentTaskMap">
+        SELECT
+            id,
+            create_user_id,
+            update_user_id,
+            task_id,
+            content
+        FROM public.comment_task
+        WHERE task_id = #{taskId}::UUID
+            AND deleted IS FALSE
+    </select>
+
+    <select id="existById" resultType="java.lang.Boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM public.comment_task
+            WHERE id = #{id}::UUID
+            AND deleted IS FALSE
+        )
+    </select>
+
+    <delete id="deleteById">
+        UPDATE public.comment_task
+        SET deleted = 'true'
+        WHERE id = #{id}::UUID
+    </delete>
+
+    <resultMap id="CommentTaskMap" type="com.taskmanager.model.CommentTask">
+        <result column="id" property="id" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="create_user_id" property="createUserId" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="update_user_id" property="updateUserId" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="task_id" property="taskId" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="content" property="content"/>
+        <result column="create_at" property="dateCreate"/>
+    </resultMap>
+
+
+</mapper>

@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: com.taskmanager.repository.mybatis.mapper.TaskMapperTest
+-------------------------------------------------------------------------------
+Tests run: 5, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.047 s -- in com.taskmanager.repository.mybatis.mapper.TaskMapperTest

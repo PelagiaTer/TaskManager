@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE mapper PUBLIC '-//mybatis.org//DTD Mapper 3.0//EN'
+        'http://mybatis.org/dtd/mybatis-3-mapper.dtd'>
+
+<mapper namespace="com.taskmanager.repository.mybatis.mapper.TaskMapper">
+
+    <insert id="save">
+        INSERT INTO public.task (
+            id,
+            title,
+            description,
+            status,
+            priority,
+            date_due,
+            date_fact,
+            project_id,
+            assigned_user_id,
+            create_user_id
+        ) VALUES (
+            #{entity.id}::UUID,
+            #{entity.title},
+            #{entity.description},
+            #{entity.status},
+            #{entity.priority},
+            #{entity.dateDue},
+            #{entity.dateFact},
+            #{entity.projectId}::UUID,
+            #{entity.assignedUserId}::UUID,
+            #{entity.createUserId}::UUID
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE public.task
+        SET
+            title = #{entity.title},
+            description = #{entity.description},
+            status = #{entity.status},
+            priority = #{entity.priority},
+            date_due = #{entity.dateDue},
+            date_fact = #{entity.dateFact},
+            project_id = #{entity.projectId}::UUID,
+            assigned_user_id = #{entity.assignedUserId}::UUID,
+            update_at = now()
+        WHERE id = #{entity.id}::UUID
+    </update>
+
+    <select id="getById" resultMap="TaskMap">
+        SELECT
+            id,
+            number,
+            title,
+            description,
+            status,
+            priority,
+            date_due,
+            date_fact,
+            project_id,
+            assigned_user_id,
+            create_user_id,
+            create_at
+        FROM public.task
+        WHERE id = #{id}::UUID
+            AND deleted IS FALSE
+    </select>
+
+    <select id="existById" resultType="java.lang.Boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM public.task
+            WHERE id = #{id}::UUID
+            AND deleted IS FALSE
+        )
+    </select>
+
+    <delete id="deleteById">
+        UPDATE public.task
+        SET deleted = 'true'
+        WHERE id = #{id}::UUID
+    </delete>
+
+    <select id="getByFilter" resultMap="TaskMap">
+        SELECT
+            id,
+            number,
+            title,
+            description,
+            status,
+            priority,
+            date_due,
+            date_fact,
+            project_id,
+            assigned_user_id,
+            create_user_id,
+            create_at
+        FROM public.task
+        WHERE
+            deleted IS FALSE
+        <if test="filter.number != null">
+            AND number = #{filter.number}
+        </if>
+        <if test="filter.status != null and filter.status != ''">
+            AND status = #{filter.status}
+        </if>
+        <if test="filter.priority != null and filter.priority != ''">
+            AND priority = #{filter.priority}
+        </if>
+        <if test="filter.assignedUserId != null">
+            AND assigned_user_id = #{filter.assignedUserId}::UUID
+        </if>
+        <if test="filter.createUserId != null">
+            AND create_user_id = #{filter.createUserId}::UUID
+        </if>
+        ORDER BY create_at DESC
+        LIMIT #{filter.limit}
+        OFFSET #{filter.offset}
+    </select>
+
+    <resultMap id="TaskMap" type="com.taskmanager.model.Task">
+        <result column="id" property="id" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="number" property="number"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="status" property="status"/>
+        <result column="priority" property="priority"/>
+        <result column="date_due" property="dateDue"/>
+        <result column="date_fact" property="dateFact"/>
+        <result column="project_id" property="projectId" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="assigned_user_id" property="assignedUserId" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="create_user_id" property="createUserId" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="create_at" property="dateCreate"/>
+    </resultMap>
+
+</mapper>

@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE mapper PUBLIC '-//mybatis.org//DTD Mapper 3.0//EN'
+        'http://mybatis.org/dtd/mybatis-3-mapper.dtd'>
+
+<mapper namespace="com.taskmanager.repository.mybatis.mapper.UserMapper">
+
+    <insert id="save">
+        INSERT INTO public.user (
+            id,
+            login,
+            password,
+            email,
+            role
+        ) VALUES (
+            #{entity.id}::UUID,
+            #{entity.login},
+            #{entity.password},
+            #{entity.email},
+            #{entity.role}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE public.user
+        SET
+            login = #{entity.login},
+            password = #{entity.password},
+            email = #{entity.email},
+            role = #{entity.role},
+            update_at = now()
+        WHERE id = #{entity.id}::UUID
+    </update>
+
+    <select id="getById" resultMap="UserMap">
+        SELECT
+            id,
+            login,
+            password,
+            email,
+            role
+        FROM public.user
+        WHERE id = #{id}::UUID
+            AND deleted IS FALSE
+    </select>
+
+    <select id="getByLogin" resultMap="UserMap">
+        SELECT
+            id,
+            login,
+            password,
+            email,
+            role
+        FROM public.user
+        WHERE login = #{login}
+            AND deleted IS FALSE
+    </select>
+
+    <select id="findUsers" resultMap="UserAutocompleteMap">
+        SELECT
+            id,
+            login
+        FROM public.user
+        WHERE login ILIKE CONCAT(#{term}, '%')
+            AND deleted IS FALSE
+        ORDER BY login
+        LIMIT #{limit}
+    </select>
+
+    <resultMap id="UserMap" type="com.taskmanager.model.User">
+        <result column="id" property="id" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="login" property="login"/>
+        <result column="password" property="password"/>
+        <result column="email" property="email"/>
+        <result column="role" property="role"/>
+    </resultMap>
+
+    <resultMap id="UserAutocompleteMap" type="com.taskmanager.model.Autocomplete">
+        <result column="id" property="id" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="login" property="name"/>
+    </resultMap>
+
+</mapper>

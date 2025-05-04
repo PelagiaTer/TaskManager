@@ -1,0 +1,119 @@
+<?xml version='1.0' encoding='UTF-8' ?>
+<!DOCTYPE mapper PUBLIC '-//mybatis.org//DTD Mapper 3.0//EN'
+        'http://mybatis.org/dtd/mybatis-3-mapper.dtd'>
+
+<mapper namespace="com.taskmanager.repository.mybatis.mapper.ProjectMapper">
+
+    <insert id="save">
+        INSERT INTO public.project (
+            id,
+            name,
+            description,
+            create_user_id
+        ) VALUES (
+            #{entity.id}::UUID,
+            #{entity.name},
+            #{entity.description},
+            #{entity.createUserId}::UUID
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE public.project
+        SET
+            description = #{entity.description},
+            update_user_id = #{entity.updateUserId}::UUID,
+            update_at = now()
+        WHERE id = #{entity.id}::UUID
+    </update>
+
+    <select id="getById" resultMap="ProjectMap">
+        SELECT
+            id,
+            name,
+            description,
+            create_user_id,
+            update_user_id
+        FROM public.project
+        WHERE id = #{id}::UUID
+            AND deleted IS FALSE
+    </select>
+
+    <select id="getByName" resultMap="ProjectMap">
+        SELECT
+            id,
+            name,
+            description,
+            create_user_id,
+            update_user_id
+        FROM public.project
+        WHERE name = #{name}
+           AND deleted IS FALSE
+    </select>
+
+    <select id="existByName" resultType="java.lang.Boolean">
+        SELECT EXISTS (
+            SELECT 1
+            FROM public.project
+            WHERE name = #{name}
+               AND deleted IS FALSE
+        )
+    </select>
+
+    <delete id="deleteById">
+        UPDATE public.project
+        SET deleted = 'true'
+        WHERE id = #{id}::UUID
+    </delete>
+
+    <select id="getByCreateUserId" resultMap="ProjectMap">
+        SELECT
+            id,
+            name,
+            description,
+            create_user_id,
+            update_user_id
+        FROM public.project
+        WHERE create_user_id = #{userId}::UUID
+          AND deleted IS FALSE
+    </select>
+
+    <select id="getAll" resultMap="ProjectMap">
+        SELECT
+            id,
+            name,
+            description,
+            create_user_id,
+            update_user_id
+        FROM public.project
+        WHERE deleted IS FALSE
+        ORDER BY id
+        LIMIT #{limit}
+        OFFSET #{offset}
+    </select>
+
+    <select id="findProjects" resultMap="ProjectAutocompleteMap">
+        SELECT
+            id,
+            name
+        FROM public.project
+        WHERE name ILIKE CONCAT(#{term}, '%')
+          AND deleted IS FALSE
+        ORDER BY "name"
+        LIMIT #{limit}
+    </select>
+
+    <resultMap id="ProjectMap" type="com.taskmanager.model.Project">
+        <result column="id" property="id" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="name" property="name"/>
+        <result column="description" property="description"/>
+        <result column="create_user_id" property="createUserId" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="update_user_id" property="updateUserId" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+    </resultMap>
+
+    <resultMap id="ProjectAutocompleteMap" type="com.taskmanager.model.Autocomplete">
+        <result column="id" property="id" typeHandler="com.taskmanager.repository.mybatis.handler.UuidTypeHandler"/>
+        <result column="name" property="name"/>
+    </resultMap>
+
+</mapper>
